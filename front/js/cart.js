@@ -74,8 +74,8 @@ for( let i = 0; i < localStorage.length; i++){
         const currentQty = data.quantity;
         data.quantity = parseInt(e.target.value);
         const closest = e.target.closest(".cart__item");
-        const dataId = closest.getAttribute("data-id");
-        const dataColor = closest.getAttribute("data-color");
+        const dataId = closest.dataset.id;
+        const dataColor = closest.dataset.color;
         const itemKey = dataId+"-"+dataColor;
 
         localStorage.setItem(itemKey, JSON.stringify(data));
@@ -93,10 +93,9 @@ for( let i = 0; i < localStorage.length; i++){
         accPrice -= data.price*data.quantity;
         
         const closest = e.target.closest(".cart__item");
-        const dataId = closest.getAttribute("data-id");
-        const dataColor = closest.getAttribute("data-color");
+        const dataId = closest.dataset.id;
+        const dataColor = closest.dataset.color;
         const itemKey = dataId+"-"+dataColor;
-        
         localStorage.removeItem(itemKey);
         closest.remove();
 
@@ -107,3 +106,118 @@ for( let i = 0; i < localStorage.length; i++){
 
 
 totalPrice.textContent = parseInt(accPrice);
+
+const alphabetOnlyRegex = /^[a-zA-Z]+$/;
+const regexAddress = /^[a-zA-Z0-9\s,'-]+$/;
+const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+
+const firstName = document.getElementById("firstName");
+const lastName = document.getElementById("lastName");
+const address = document.getElementById("address");
+const city = document.getElementById("city");
+const email = document.getElementById("email");
+const order = document.getElementById("order");
+
+const firstNameErrorMsg = document.getElementById("firstNameErrorMsg");
+const lastNameErrorMsg = document.getElementById("lastNameErrorMsg");
+const addressErrorMsg = document.getElementById("addressErrorMsg");
+const cityErrorMsg = document.getElementById("cityErrorMsg");
+const emailErrorMsg = document.getElementById("emailErrorMsg");
+
+firstName.addEventListener('input', function (e) {
+    const inputFirstName = e.target.value;
+    const isFirstNameValid = alphabetOnlyRegex.test(inputFirstName);
+    if(!isFirstNameValid){
+        firstNameErrorMsg.textContent = "Prénom invalide";
+    }else{
+        firstNameErrorMsg.textContent = "";
+    }
+})
+
+lastName.addEventListener('input', function (e) {
+    const inputLastName = e.target.value;
+    const isLastNameValid = alphabetOnlyRegex.test(inputLastName);
+    if(!isLastNameValid){
+        lastNameErrorMsg.textContent = "Nom invalide";
+    }else{
+        lastNameErrorMsg.textContent = "";
+    }
+})
+
+address.addEventListener('input', function (e) {
+    const inputAddress = e.target.value;
+    const isAddressValid = regexAddress.test(inputAddress);
+    if(!isAddressValid){
+        addressErrorMsg.textContent = "Adresse invalide";
+    }else{
+        addressErrorMsg.textContent = "";
+    }
+})
+
+city.addEventListener('input', function (e) {
+    const inputCity = e.target.value;
+    const isCityValid = alphabetOnlyRegex.test(inputCity);
+    if(!isCityValid){
+        cityErrorMsg.textContent = "Ville invalide";
+    }else{
+        cityErrorMsg.textContent = "";
+    }
+})
+
+email.addEventListener('input', function (e) {
+    const inputEmail = e.target.value;
+    const isEmailValid = regexEmail.test(inputEmail);
+    if(!isEmailValid){
+        emailErrorMsg.textContent = "Email invalide";
+    }else{
+        emailErrorMsg.textContent = "";
+    }
+})
+
+order.addEventListener('click', async function (e) {
+    const testFirstName = firstNameErrorMsg.textContent;
+    const testLastName = lastNameErrorMsg.textContent;
+    const testAddress = addressErrorMsg.textContent;
+    const testCity = cityErrorMsg.textContent;
+    const testEmail = emailErrorMsg.textContent;
+
+    const testForm = (testFirstName == "" & testLastName == "" & testAddress == "" & testCity == "" & testEmail == "");
+    
+    if(!testForm){
+        e.preventDefault();
+        alert("Données saisies incorrects");
+    }else{
+        const container = document.getElementById('cart__items');
+        const cartItems = container.querySelectorAll('*');
+        const productsIds = Array.from(cartItems)
+                   .map(element => element.dataset.id)
+                   .filter(id => id);
+
+        let orderObj = {
+            contact: {
+                firstName: firstName.value,
+                lastName: lastName.value,
+                address: address.value,
+                city: city.value,
+                email: email.value
+            },
+            products: productsIds,
+        };
+        await fetch('http://localhost:3000/api/products/order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(orderObj)
+        })
+        .then(response => response.json())
+        .then(data => {
+            const params = data.orderId;
+            window.location.href = `confirmation.html?id=${params}`;
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+    }
+})
