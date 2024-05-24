@@ -181,13 +181,20 @@ order.addEventListener('click', async function (e) {
     const testAddress = addressErrorMsg.textContent;
     const testCity = cityErrorMsg.textContent;
     const testEmail = emailErrorMsg.textContent;
+    const firstNameValue = firstName.value;
+    const lastNameValue = lastName.value;
+    const addressValue = address.value;
+    const cityValue = city.value;
+    const emailValue = email.value;
 
-    const testForm = (testFirstName == "" & testLastName == "" & testAddress == "" & testCity == "" & testEmail == "");
+    const testFormMsg = (testFirstName == "" & testLastName == "" & testAddress == "" & testCity == "" & testEmail == "");
+    const testForm = (firstNameValue == "" || lastNameValue == "" || addressValue == "" || cityValue == "" || emailValue == "");
     
-    if(!testForm){
+    if(!testFormMsg || testForm){
         e.preventDefault();
         alert("Données saisies incorrects");
     }else{
+        e.preventDefault();
         const container = document.getElementById('cart__items');
         const cartItems = container.querySelectorAll('*');
         const productsIds = Array.from(cartItems)
