@@ -9,6 +9,7 @@ var altTxt = "";
 var productName = "";
 var productPrice = 0;
 
+//Récuperation des données d'un produit et affichage de ces données dans la page
 async function logProducts() {
     const response = await fetch('http://localhost:3000/api/products/'+ urlId);
     const product = await response.json();
@@ -21,6 +22,7 @@ async function logProducts() {
 
     const img = document.createElement('img');
 
+    //Récupération de chaque couleurs du produit à sélectionner dans le bouton select
     product.colors.forEach(color => {
         const option = document.createElement('option');
         option.value = color.toLowerCase();
@@ -44,9 +46,16 @@ async function logProducts() {
     itemImg[0].appendChild(img);
 }
 
-
+//Ajout du produit avec sa quantité et sa couleur dans le panier
 function addProduct() {
-    const itemObj = {
+    let quantityValue = parseInt(quantity.value);
+    let colorsValue = color.value.length;
+    let interval = quantityValue <= 100 && quantityValue > 0;
+
+    //Vérifie que le contenu des champs est valide
+    if(interval && colorsValue > 0)
+    {
+        let itemObj = {
         id : urlId,
         name : productName,
         price : productPrice,        
@@ -54,22 +63,46 @@ function addProduct() {
         color: clr,
         imageUrl: imageUrl,
         altTxt: altTxt
-    };
-    const itemKey = itemObj.id +'-'+ itemObj.color;
+        };
+        const itemKey = itemObj.id +'-'+ itemObj.color;
 
-    if(localStorage.getItem(itemKey)){
-        let originItem = JSON.parse(localStorage.getItem(itemKey));
-        itemObj.quantity += originItem.quantity;
+        //Si le produit existe déjà dans le panier, seul la quantité sera modifiée
+        if(localStorage.getItem(itemKey)){
+            let originItem = JSON.parse(localStorage.getItem(itemKey));
+            let originQty = originItem.quantity;
+            let newQty = itemObj.quantity;
+            let qtySum = originQty + newQty;
+            if(qtySum > 100){
+                itemObj.quantity = 100;
+            }else{
+                itemObj.quantity += originItem.quantity;
+            }
+        }
+        
+        let itemLinea = JSON.stringify(itemObj);
+        localStorage.setItem(itemKey,itemLinea);
+    }else{
+        alert("Champs non valide!");
     }
-    
-    let itemLinea = JSON.stringify(itemObj);
-    localStorage.setItem(itemKey,itemLinea);
 }
 
+//S'assure que la quantité saisie est un nombre positif
 function selectQte() {
-    qte = parseInt(this.value); 
+
+    let qteValue = this.value; 
+
+    if(qteValue > 100){
+        this.value = 100;
+        qte = parseInt(this.value, 10);
+    }else if(qteValue < 0){
+        this.value = 0;
+        qte = parseInt(this.value, 10);
+    }else{
+        qte = parseInt(this.value, 10);
+    }
 }
 
+//Valorisation de la couleur selectionnée du produit
 function selectColor() {
     clr = this.value;  
 }

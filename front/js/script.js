@@ -1,9 +1,11 @@
 var items = document.getElementById('items');
 
+//Récupération de tout les types de produit stockés dans le serveur et affichage des produits dans la page
 async function logProducts() {
   const response = await fetch('http://localhost:3000/api/products/');
   const products = await response.json();
 
+  //Boucle sur chaque type de produit pour récupérer leur propriétés
   products.forEach(product => {
     const link = document.createElement('a');
     const article = document.createElement('article');

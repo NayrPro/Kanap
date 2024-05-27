@@ -1,9 +1,11 @@
 const cartItems = document.getElementById("cart__items");
 const totalQuantity = document.getElementById("totalQuantity");
 const totalPrice = document.getElementById("totalPrice");
-totalQuantity.textContent = parseInt(localStorage.length);
-var accPrice = 0;
 
+var accPrice = 0;
+var accQty = 0;
+
+//Parcours du localStorage pour récupérer chaque produit avec ses propriétés
 for( let i = 0; i < localStorage.length; i++){
     const obj = localStorage.getItem(localStorage.key(i));
     const data = JSON.parse(obj);
@@ -41,6 +43,7 @@ for( let i = 0; i < localStorage.length; i++){
     pColor.textContent = data.color;
     pPrice.textContent = data.price+" €";
     accPrice += data.price*data.quantity;
+    accQty += data.quantity;
     Qty.textContent = "Qté : ";
     pDelItem.textContent = "Supprimer";
     input.type = "number";
@@ -70,9 +73,10 @@ for( let i = 0; i < localStorage.length; i++){
     cartItems.appendChild(article);
 
 
-    input.addEventListener('change', function selectQte(e) {
+    //Valorisation + Controle de saisie de l'élément input gérant la quantité d'un produit
+    input.addEventListener('input', function selectQte(e) {
         const currentQty = data.quantity;
-        data.quantity = parseInt(e.target.value);
+        ctrlQte(e);
         const closest = e.target.closest(".cart__item");
         const dataId = closest.dataset.id;
         const dataColor = closest.dataset.color;
@@ -80,18 +84,49 @@ for( let i = 0; i < localStorage.length; i++){
 
         localStorage.setItem(itemKey, JSON.stringify(data));
 
-        if(e.target.value > currentQty){
-            accPrice += data.price;
-        }else{
-            accPrice -= data.price;
+        accPrice -= data.price*currentQty;
+        accPrice += data.price*data.quantity;
 
-        }
+        accQty -= currentQty;
+        accQty += data.quantity;
+
         totalPrice.textContent = accPrice;
+        totalQuantity.textContent = accQty;
     });
 
+    //Le contenu de l'élément input gérant la quantité est automatiquement sélectionné au focus
+    input.addEventListener('focus', () => {
+        input.select();
+    });
+
+    //Le contenu de l'élément input gérant la quantité est automatiquement valorisé à 1 si son contenu n'est pas un nombre positif
+    //lorsque le focus est perdu
+    input.addEventListener('blur', () => {
+        if (input.value === '' || isNaN(input.value)) {
+            input.value = 1;
+        }
+    });
+
+    //S'assure que la quantité saisie est un nombre positif avant d'être stocké localement
+    function ctrlQte(e) {
+    
+        let qteValue = e.target.value; 
+    
+        if(qteValue > 100){
+            e.target.value = 100;
+            data.quantity = parseInt(e.target.value, 10);
+        }else if(qteValue < 0 || isNaN(qteValue) || qteValue === ''){
+            e.target.value = 1;
+            data.quantity = parseInt(e.target.value, 10);
+        }else{
+            data.quantity = parseInt(e.target.value, 10);
+        }
+    }
+
+    //Evenement retirant localement le produit et modifie la quantité et le prix total du panier
     pDelItem.addEventListener('click', function deleteItem(e) {
         accPrice -= data.price*data.quantity;
-        
+        accQty -= data.quantity;
         const closest = e.target.closest(".cart__item");
         const dataId = closest.dataset.id;
         const dataColor = closest.dataset.color;
@@ -99,13 +134,14 @@ for( let i = 0; i < localStorage.length; i++){
         localStorage.removeItem(itemKey);
         closest.remove();
 
-        totalQuantity.textContent = localStorage.length;
+        totalQuantity.textContent = accQty;
         totalPrice.textContent = accPrice;
     });
 }
 
 
 totalPrice.textContent = parseInt(accPrice);
+totalQuantity.textContent = parseInt(accQty);
 
 const alphabetOnlyRegex = /^[a-zA-Z]+$/;
 const regexAddress = /^[a-zA-Z0-9\s,'-]+$/;
@@ -124,6 +160,12 @@ const lastNameErrorMsg = document.getElementById("lastNameErrorMsg");
 const addressErrorMsg = document.getElementById("addressErrorMsg");
 const cityErrorMsg = document.getElementById("cityErrorMsg");
 const emailErrorMsg = document.getElementById("emailErrorMsg");
+
+
+/** 
+ * Evenements pour chaque input du formulaire controlant la validité de la saisie,
+ * un message d'erreur s'affiche si la saisie ne respecte pas le formzat Regex correspondant
+**/
 
 firstName.addEventListener('input', function (e) {
     const inputFirstName = e.target.value;
@@ -175,6 +217,8 @@ email.addEventListener('input', function (e) {
     }
 })
 
+
+//Evenement controlant la validation du formulaire et l'envoi de ces données dans le serveur
 order.addEventListener('click', async function (e) {
     const testFirstName = firstNameErrorMsg.textContent;
     const testLastName = lastNameErrorMsg.textContent;
@@ -194,7 +238,6 @@ order.addEventListener('click', async function (e) {
         e.preventDefault();
         alert("Données saisies incorrects");
     }else{
-        e.preventDefault();
         const container = document.getElementById('cart__items');
         const cartItems = container.querySelectorAll('*');
         const productsIds = Array.from(cartItems)
