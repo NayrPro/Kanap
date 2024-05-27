@@ -234,10 +234,11 @@ order.addEventListener('click', async function (e) {
     const testFormMsg = (testFirstName == "" & testLastName == "" & testAddress == "" & testCity == "" & testEmail == "");
     const testForm = (firstNameValue == "" || lastNameValue == "" || addressValue == "" || cityValue == "" || emailValue == "");
     
-    if(!testFormMsg || testForm){
+    if(!testFormMsg || testForm || localStorage.length === 0){
         e.preventDefault();
         alert("Données saisies incorrects");
     }else{
+        e.preventDefault();
         const container = document.getElementById('cart__items');
         const cartItems = container.querySelectorAll('*');
         const productsIds = Array.from(cartItems)
