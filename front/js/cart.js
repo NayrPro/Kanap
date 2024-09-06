@@ -115,7 +115,7 @@ for( let i = 0; i < localStorage.length; i++){
         if(qteValue > 100){
             e.target.value = 100;
             data.quantity = parseInt(e.target.value, 10);
-        }else if(qteValue < 0 || isNaN(qteValue) || qteValue === ''){
+        }else if(qteValue < 1 || isNaN(qteValue) || qteValue === ''){
             e.target.value = 1;
             data.quantity = parseInt(e.target.value, 10);
         }else{
